@@ -1,4 +1,5 @@
 """Game service - orchestrates game logic."""
+
 import time
 from typing import List, Optional, Callable
 from domain.entities import Player, Enemy, Weapon
@@ -10,17 +11,11 @@ class GameService:
     Orchestrates game state and domain logic.
     Engine-agnostic application layer.
     """
-    
-    def __init__(
-        self,
-        player: Player,
-        weapon: Weapon,
-        wave_manager: WaveManager,
-        wave_clear_delay: float = 3.0
-    ):
+
+    def __init__(self, player: Player, weapon: Weapon, wave_manager: WaveManager, wave_clear_delay: float = 3.0):
         """
         Initialize game service.
-        
+
         Args:
             player: Player entity
             weapon: Weapon entity
@@ -31,18 +26,18 @@ class GameService:
         self.weapon = weapon
         self.wave_manager = wave_manager
         self.wave_clear_delay = wave_clear_delay
-        
+
         self.enemies: List[Enemy] = []
         self.game_started = False
         self.wave_in_progress = False
         self.wave_clear_time: Optional[float] = None
-        
+
         # Callbacks for infrastructure layer
         self.on_enemy_spawn: Optional[Callable[[Enemy], None]] = None
         self.on_enemy_death: Optional[Callable[[Enemy], None]] = None
         self.on_wave_start: Optional[Callable[[int], None]] = None
         self.on_player_death: Optional[Callable[[], None]] = None
-        
+
     def start_game(self) -> None:
         """Initialize and start the game."""
         self.game_started = True
@@ -50,7 +45,7 @@ class GameService:
         self.enemies.clear()
         self.wave_manager.current_wave = 0
         self._start_next_wave()
-    
+
     def _start_next_wave(self) -> None:
         """Start the next wave."""
         wave_number = self.wave_manager.advance_to_next_wave()
@@ -58,94 +53,94 @@ class GameService:
         self.enemies.extend(new_enemies)
         self.wave_in_progress = True
         self.wave_clear_time = None
-        
+
         # Notify infrastructure to create visual enemies
         if self.on_wave_start:
             self.on_wave_start(wave_number)
-        
+
         if self.on_enemy_spawn:
             for enemy in new_enemies:
                 self.on_enemy_spawn(enemy)
-    
+
     def update(self, delta_time: float) -> None:
         """
         Update game state.
-        
+
         Args:
             delta_time: Time since last update
         """
         if not self.game_started or not self.player.is_alive:
             return
-        
+
         # Check if wave is cleared
         alive_enemies = [e for e in self.enemies if e.is_alive]
-        
+
         if self.wave_in_progress and len(alive_enemies) == 0:
             # Wave cleared!
             self.wave_in_progress = False
             if self.wave_clear_time is None:
                 self.wave_clear_time = time.time()
-        
+
         # Start next wave after delay
         if not self.wave_in_progress and self.wave_clear_time is not None:
             if (time.time() - self.wave_clear_time) >= self.wave_clear_delay:
                 self._start_next_wave()
-    
+
     def handle_shoot_attempt(self) -> bool:
         """
         Try to fire weapon.
-        
+
         Returns:
             True if weapon fired
         """
         if not self.player.is_alive:
             return False
-        
+
         if self.weapon.can_fire():
             self.weapon.fire()
             return True
         return False
-    
+
     def handle_enemy_hit(self, enemy: Enemy) -> bool:
         """
         Handle an enemy being hit by weapon.
-        
+
         Args:
             enemy: Enemy that was hit
-            
+
         Returns:
             True if enemy died
         """
         if not enemy.is_alive:
             return False
-        
+
         enemy.take_damage(self.weapon.damage)
-        
+
         if not enemy.is_alive:
             self.player.add_kill()
             if self.on_enemy_death:
                 self.on_enemy_death(enemy)
             return True
-        
+
         return False
-    
+
     def handle_player_hit(self, damage: int) -> None:
         """
         Handle player taking damage.
-        
+
         Args:
             damage: Amount of damage
         """
         if not self.player.is_alive:
             return
-        
+
         self.player.take_damage(damage)
-        
+
         if not self.player.is_alive:
             self.game_started = False
             if self.on_player_death:
                 self.on_player_death()
-    
+
     def get_alive_enemies(self) -> List[Enemy]:
         """Get list of alive enemies."""
         return [e for e in self.enemies if e.is_alive]
