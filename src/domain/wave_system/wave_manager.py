@@ -1,6 +1,6 @@
 """Wave management system - pure Python domain logic."""
 from typing import List, Tuple
-from ..entities.enemy import Enemy
+from domain.entities.enemy import Enemy
 
 
 class WaveManager:

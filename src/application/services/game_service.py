@@ -1,8 +1,8 @@
 """Game service - orchestrates game logic."""
 import time
 from typing import List, Optional, Callable
-from ...domain.entities import Player, Enemy, Weapon
-from ...domain.wave_system import WaveManager
+from domain.entities import Player, Enemy, Weapon
+from domain.wave_system import WaveManager
 
 
 class GameService:
