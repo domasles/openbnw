@@ -54,7 +54,10 @@ class EnemyRenderer(Entity):
             self.enemy_domain.take_damage(int(damage))
             self.take_damage()
             if not self.enemy_domain.is_alive:
-                self.game_service.handle_enemy_hit(self.enemy_domain)
+                # Enemy died - add kill and trigger death callback directly
+                self.game_service.player.add_kill()
+                if self.game_service.on_enemy_death:
+                    self.game_service.on_enemy_death(self.enemy_domain)
     
     def update(self):
         """AI behavior: chase player, attack on contact."""

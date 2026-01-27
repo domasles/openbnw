@@ -51,7 +51,13 @@ class ShootingHandler:
         if hit_info.hit and hasattr(hit_info.entity, 'hp'):
             # Apply damage
             hit_info.entity.hp -= self.weapon_damage
-            hit_info.entity.blink(color.red)
+            # Only blink if entity still exists (not destroyed)
+            try:
+                if hit_info.entity and hasattr(hit_info.entity, 'blink'):
+                    hit_info.entity.blink(color.red)
+            except:
+                # Entity was destroyed, that's okay
+                pass
             return hit_info.entity
         
         return None

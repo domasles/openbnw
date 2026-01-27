@@ -16,13 +16,13 @@ class GameConfig:
     
     # Weapon settings
     WEAPON_FIRE_RATE = 0.15  # seconds between shots
-    WEAPON_DAMAGE = 10
+    WEAPON_DAMAGE = 20
     WEAPON_RANGE = 100
     
     # Enemy settings
     BASE_ENEMY_SPEED = 5.0
     ENEMY_SPEED_INCREMENT = 0.5  # per wave
-    ENEMY_MAX_HEALTH = 100
+    ENEMY_MAX_HEALTH = 60
     ENEMY_DAMAGE = 20  # damage to player on contact
     ENEMY_ATTACK_COOLDOWN = 1.0  # seconds between attacks
     ENEMY_DETECTION_RANGE = 40  # range to detect player
