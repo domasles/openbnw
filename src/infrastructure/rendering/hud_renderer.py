@@ -18,21 +18,17 @@ class HUDRenderer:
         """
         self.game_service = game_service
 
-        self.wave_text = Text(text="Wave: 0", position=(-0.85, 0.45), origin=(0, 0), scale=2)
-
-        self.enemy_text = Text(text="Enemies: 0", position=(-0.85, 0.40), origin=(0, 0), scale=2)
-
-        self.health_text = Text(text="Health: 100", position=(-0.85, 0.35), origin=(0, 0), scale=2)
-
-        self.kills_text = Text(text="Kills: 0", position=(-0.85, 0.30), origin=(0, 0), scale=2)
-
+        self.wave_text = Text(text="Wave: 0", position=(0, 0.45), origin=(0, 0), scale=1)
+        self.enemy_text = Text(text="Enemies: 0", position=(0, 0.425), origin=(0, 0), scale=1)
+        self.health_text = Text(text="Health: 100", position=(0, 0.4), origin=(0, 0), scale=1)
+        self.kills_text = Text(text="Kills: 0", position=(0, 0.375), origin=(0, 0), scale=1)
         self.game_over_text = Text(text="", position=(0, 0), origin=(0, 0), scale=3, color=color.red, enabled=False)
 
     def update(self):
         """Auto-update HUD from game service state."""
         # Update stats
         self.wave_text.text = f"Wave: {self.game_service.wave_manager.current_wave}"
-        alive_enemies = len(self.game_service.get_alive_enemies())
+        alive_enemies = len(self.game_service.enemies)
         self.enemy_text.text = f"Enemies: {alive_enemies}"
         self.health_text.text = f"Health: {self.game_service.player.health}"
         self.kills_text.text = f"Kills: {self.game_service.player.kills}"

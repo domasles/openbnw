@@ -7,7 +7,9 @@ class GameConfig:
     """All game constants in one place."""
 
     # Version
-    VERSION = "3.0.0-ursina-enhanced"
+    VERSION = "1.0.0-beta"
+    NAME = "OpenBNW"
+    DEVELOPMENT = True  # Toggle development mode features
 
     # Player settings
     PLAYER_MAX_HEALTH = 100

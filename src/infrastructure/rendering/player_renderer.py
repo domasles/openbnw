@@ -21,13 +21,10 @@ class PlayerRenderer(FirstPersonController):
             player_domain: Domain Player instance
         """
         super().__init__(
-            model="cube",
-            color=color.orange,
             origin_y=-0.5,
             speed=GameConfig.PLAYER_SPEED,
             collider="box",
             position=(0, 0, 0),
-            visible_self=True,
             jump_height=0,
         )
 
@@ -61,3 +58,16 @@ class PlayerRenderer(FirstPersonController):
     def reset_position(self):
         """Reset player to spawn position."""
         self.position = (0, 0, 0)
+
+    def destroy(self):
+        """Properly clean up all child entities before destroying."""
+        # Explicitly destroy gun and its children
+        if hasattr(self, 'gun') and self.gun:
+            if hasattr(self.gun, 'muzzle_flash') and self.gun.muzzle_flash:
+                destroy(self.gun.muzzle_flash)
+                self.gun.muzzle_flash = None
+            destroy(self.gun)
+            self.gun = None
+        
+        # Then destroy self using Ursina's destroy
+        destroy(self, delay=0)

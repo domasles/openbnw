@@ -35,6 +35,7 @@ class GameService:
         # Callbacks for infrastructure layer
         self.on_enemy_spawn: Optional[Callable[[Enemy], None]] = None
         self.on_enemy_death: Optional[Callable[[Enemy], None]] = None
+        self.on_enemy_damaged: Optional[Callable[[Enemy], None]] = None
         self.on_wave_start: Optional[Callable[[int], None]] = None
         self.on_player_death: Optional[Callable[[], None]] = None
 
@@ -48,6 +49,9 @@ class GameService:
 
     def _start_next_wave(self) -> None:
         """Start the next wave."""
+        # Safety cleanup: remove any dead enemies before starting new wave
+        self.enemies = [e for e in self.enemies if e.is_alive]
+        
         wave_number = self.wave_manager.advance_to_next_wave()
         new_enemies = self.wave_manager.spawn_wave(wave_number)
         self.enemies.extend(new_enemies)
@@ -73,9 +77,7 @@ class GameService:
             return
 
         # Check if wave is cleared
-        alive_enemies = [e for e in self.enemies if e.is_alive]
-
-        if self.wave_in_progress and len(alive_enemies) == 0:
+        if self.wave_in_progress and len(self.enemies) == 0:
             # Wave cleared!
             self.wave_in_progress = False
             if self.wave_clear_time is None:
@@ -115,9 +117,17 @@ class GameService:
             return False
 
         enemy.take_damage(self.weapon.damage)
+        
+        # Notify infrastructure for visual feedback (blink, health bar update)
+        if self.on_enemy_damaged:
+            self.on_enemy_damaged(enemy)
 
         if not enemy.is_alive:
             self.player.add_kill()
+            # Immediate cleanup: remove dead enemy from domain list
+            if enemy in self.enemies:
+                self.enemies.remove(enemy)
+            # Notify infrastructure to destroy visual entity
             if self.on_enemy_death:
                 self.on_enemy_death(enemy)
             return True
@@ -140,7 +150,3 @@ class GameService:
             self.game_started = False
             if self.on_player_death:
                 self.on_player_death()
-
-    def get_alive_enemies(self) -> List[Enemy]:
-        """Get list of alive enemies."""
-        return [e for e in self.enemies if e.is_alive]

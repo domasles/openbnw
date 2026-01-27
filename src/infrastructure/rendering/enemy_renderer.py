@@ -46,13 +46,7 @@ class EnemyRenderer(Entity):
         """Setter for shooting compatibility."""
         damage = self.enemy_domain.health - value
         if damage > 0:
-            self.enemy_domain.take_damage(int(damage))
-            self.take_damage()
-            if not self.enemy_domain.is_alive:
-                # Enemy died - add kill and trigger death callback directly
-                self.game_service.player.add_kill()
-                if self.game_service.on_enemy_death:
-                    self.game_service.on_enemy_death(self.enemy_domain)
+            self.game_service.handle_enemy_hit(self.enemy_domain)
 
     def update(self):
         """AI behavior: chase player, attack on contact."""
@@ -95,3 +89,13 @@ class EnemyRenderer(Entity):
 
         # Blink red
         self.blink(color.red)
+
+    def destroy(self):
+        """Properly clean up all child entities before destroying."""
+        # Explicitly destroy health bar first
+        if hasattr(self, 'health_bar') and self.health_bar:
+            destroy(self.health_bar)
+            self.health_bar = None
+        
+        # Then destroy self using Ursina's destroy
+        destroy(self, delay=0)

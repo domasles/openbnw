@@ -45,11 +45,24 @@ class EnemySpawner:
         """
         enemy_id = id(enemy)
         if enemy_id in self.enemy_entities:
-            destroy(self.enemy_entities[enemy_id])
+            # Call custom destroy() method to properly clean up children
+            self.enemy_entities[enemy_id].destroy()
             del self.enemy_entities[enemy_id]
 
     def despawn_all(self):
         """Destroy all enemy entities."""
         for enemy_entity in list(self.enemy_entities.values()):
-            destroy(enemy_entity)
+            # Call custom destroy() method to properly clean up children
+            enemy_entity.destroy()
         self.enemy_entities.clear()
+
+    def handle_enemy_damage(self, enemy: Enemy):
+        """
+        Handle visual feedback when enemy takes damage.
+
+        Args:
+            enemy: Domain Enemy instance
+        """
+        enemy_id = id(enemy)
+        if enemy_id in self.enemy_entities:
+            self.enemy_entities[enemy_id].take_damage()

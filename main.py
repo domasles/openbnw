@@ -69,6 +69,7 @@ class OpenBNWGame:
         # Wire game service callbacks to infrastructure
         self.game_service.on_enemy_spawn = self.enemy_spawner.spawn_enemy
         self.game_service.on_enemy_death = self.enemy_spawner.despawn_enemy
+        self.game_service.on_enemy_damaged = self.enemy_spawner.handle_enemy_damage
         self.game_service.on_player_death = self._on_player_death
 
         # Start
@@ -123,7 +124,8 @@ class OpenBNWGame:
 
 # Entry point
 if __name__ == "__main__":
-    app = Ursina()
+    window_title = GameConfig.NAME + " " + GameConfig.VERSION
+    app = Ursina(title=window_title, development_mode=GameConfig.DEVELOPMENT)
     game = OpenBNWGame()
 
     # Register global functions for Ursina
