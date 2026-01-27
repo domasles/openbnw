@@ -139,7 +139,9 @@ class OpenBNWGame:
                 self.wave_manager.current_wave,
                 self.player_domain.kills
             )
+            # Disable player controls
             mouse.locked = False
+            self.player.disable()  # Disable movement and camera
             self.gun.enabled = False
     
     def _restart_game(self):
@@ -148,7 +150,8 @@ class OpenBNWGame:
         for enemy_entity in list(self.enemy_entities.values()):
             destroy(enemy_entity)
         self.enemy_entities.clear()
-        
+        self.player.position = (0, 0, 0)
+        self.player.enable()  # Re-enable movement and camera
         # Reset player position
         self.player.position = (0, 0, 0)
         
@@ -163,9 +166,12 @@ class OpenBNWGame:
     
     def input(self, key):
         """Handle input."""
-        if key == 'r' and self.game_over_shown:
-            self._restart_game()
-    
+        if self.game_over_shown:
+            if key == 'r':
+                self._restart_game()
+            elif key == 'escape':
+                application.quit()
+        # No input during game over except R and ESC    
     def update(self):
         """Update game state - thin orchestration."""
         # Shooting
@@ -190,5 +196,9 @@ if __name__ == '__main__':
     # Register update function globally for Ursina
     def update():
         game.update()
+    
+    # Register input function globally for Ursina
+    def input(key):
+        game.input(key)
     
     app.run()
