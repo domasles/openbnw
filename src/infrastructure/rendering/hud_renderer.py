@@ -4,12 +4,19 @@ from ursina import *
 
 class HUDRenderer:
     """
-    Manages HUD text elements.
+    Manages HUD text elements with auto-update from game state.
     Infrastructure layer - Ursina specific.
     """
     
-    def __init__(self):
-        """Create HUD elements."""
+    def __init__(self, game_service):
+        """
+        Create HUD elements.
+        
+        Args:
+            game_service: GameService to poll for state
+        """
+        self.game_service = game_service
+        
         self.wave_text = Text(
             text='Wave: 0',
             position=(-0.85, 0.45),
@@ -47,21 +54,14 @@ class HUDRenderer:
             enabled=False
         )
     
-    def update_wave(self, wave_number: int):
-        """Update wave display."""
-        self.wave_text.text = f'Wave: {wave_number}'
-    
-    def update_enemies(self, enemy_count: int):
-        """Update enemy count display."""
-        self.enemy_text.text = f'Enemies: {enemy_count}'
-    
-    def update_health(self, health: int):
-        """Update health display."""
-        self.health_text.text = f'Health: {health}'
-    
-    def update_kills(self, kills: int):
-        """Update kills display."""
-        self.kills_text.text = f'Kills: {kills}'
+    def update(self):
+        """Auto-update HUD from game service state."""
+        # Update stats
+        self.wave_text.text = f'Wave: {self.game_service.wave_manager.current_wave}'
+        alive_enemies = len(self.game_service.get_alive_enemies())
+        self.enemy_text.text = f'Enemies: {alive_enemies}'
+        self.health_text.text = f'Health: {self.game_service.player.health}'
+        self.kills_text.text = f'Kills: {self.game_service.player.kills}'
     
     def show_game_over(self, wave: int, kills: int):
         """Show game over screen."""
