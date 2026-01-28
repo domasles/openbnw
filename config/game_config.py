@@ -26,8 +26,6 @@ class GameConfig:
     ENEMY_MAX_HEALTH = 60
     ENEMY_DAMAGE = 20  # damage to player on contact
     ENEMY_ATTACK_COOLDOWN = 1.0  # seconds between attacks
-    ENEMY_DETECTION_RANGE = 40  # range to detect player
-    ENEMY_STOP_DISTANCE = 2  # stop chasing at this distance
 
     # Wave system
     BASE_ENEMY_COUNT = 5
@@ -40,7 +38,7 @@ class GameConfig:
     SPAWN_DISTANCE_MAX = 25.0
 
     # Arena
-    ARENA_SIZE = 72
+    ARENA_SIZE = 64
     ARENA_WALL_HEIGHT = 3
 
     # Visual settings

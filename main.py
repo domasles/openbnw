@@ -44,7 +44,9 @@ class OpenBNWGame:
         )
 
         # Application layer - service orchestration
-        self.game_service = GameService(player_domain, weapon_domain, wave_manager, GameConfig.WAVE_CLEAR_DELAY)
+        self.game_service = GameService(
+            player_domain, weapon_domain, wave_manager, GameConfig.WAVE_CLEAR_DELAY, GameConfig.WAVE_START_DELAY
+        )
         # Game state
         self.game_over_shown = False
         # Infrastructure - rendering

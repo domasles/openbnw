@@ -23,14 +23,13 @@ class PlayerRenderer(FirstPersonController):
         super().__init__(
             origin_y=-0.5,
             speed=GameConfig.PLAYER_SPEED,
-            collider="box",
             position=(0, 0, 0),
             jump_height=0,
             mouse_sensitivity=GameConfig.PLAYER_MOUSE_SENSITIVITY,
         )
 
+        self.collider = SphereCollider(self, radius=1)
         self.player_domain = player_domain
-        self.collider = BoxCollider(self, Vec3(0, 1, 0), Vec3(1, 2, 1))
 
         # Gun attached to player
         self.gun = Entity(

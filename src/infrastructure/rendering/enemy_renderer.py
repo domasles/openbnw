@@ -59,26 +59,20 @@ class EnemyRenderer(Entity):
         # Fade health bar
         self.health_bar.alpha = max(0, self.health_bar.alpha - time.dt)
 
-        # Look at player
+        # Always look at player
         self.look_at_2d(self.player_entity.position, "y")
 
-        # Check line of sight
-        hit_info = raycast(
-            self.world_position + Vec3(0, 1, 0), self.forward, distance=GameConfig.ENEMY_DETECTION_RANGE, ignore=(self,)
-        )
-
-        # If player in sight, chase
-        if hit_info.entity == self.player_entity:
-            if dist > GameConfig.ENEMY_STOP_DISTANCE:
-                # Move toward player
-                self.position += self.forward * time.dt * self.enemy_domain.speed
-            else:
-                # Attack
-                current_time = time_module.time()
-                if self.enemy_domain.can_attack(current_time, GameConfig.ENEMY_ATTACK_COOLDOWN):
-                    self.enemy_domain.perform_attack(current_time)
-                    self.game_service.handle_player_hit(GameConfig.ENEMY_DAMAGE)
-                    self.player_entity.blink(color.red)
+        # Check if touching player (collision)
+        if not self.intersects(self.player_entity).hit:
+            # Not touching - keep chasing
+            self.position += self.forward * time.dt * self.enemy_domain.speed
+        else:
+            # Touching - stop moving and attack
+            current_time = time_module.time()
+            if self.enemy_domain.can_attack(current_time, GameConfig.ENEMY_ATTACK_COOLDOWN):
+                self.enemy_domain.perform_attack(current_time)
+                self.game_service.handle_player_hit(GameConfig.ENEMY_DAMAGE)
+                self.player_entity.blink(color.red)
 
     def take_damage(self):
         """Visual feedback when hit."""

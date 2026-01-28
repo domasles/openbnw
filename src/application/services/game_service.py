@@ -12,7 +12,7 @@ class GameService:
     Engine-agnostic application layer.
     """
 
-    def __init__(self, player: Player, weapon: Weapon, wave_manager: WaveManager, wave_clear_delay: float = 3.0):
+    def __init__(self, player: Player, weapon: Weapon, wave_manager: WaveManager, wave_clear_delay: float = 3.0, wave_start_delay: float = 2.0):
         """
         Initialize game service.
 
@@ -21,16 +21,19 @@ class GameService:
             weapon: Weapon entity
             wave_manager: Wave management system
             wave_clear_delay: Seconds to wait after wave cleared
+            wave_start_delay: Seconds to wait before first wave
         """
         self.player = player
         self.weapon = weapon
         self.wave_manager = wave_manager
         self.wave_clear_delay = wave_clear_delay
+        self.wave_start_delay = wave_start_delay
 
         self.enemies: List[Enemy] = []
         self.game_started = False
         self.wave_in_progress = False
         self.wave_clear_time: Optional[float] = None
+        self.first_wave_start_time: Optional[float] = None
 
         # Callbacks for infrastructure layer
         self.on_enemy_spawn: Optional[Callable[[Enemy], None]] = None
@@ -45,7 +48,7 @@ class GameService:
         self.player.reset()
         self.enemies.clear()
         self.wave_manager.current_wave = 0
-        self._start_next_wave()
+        self.first_wave_start_time = time.time()
 
     def _start_next_wave(self) -> None:
         """Start the next wave."""
@@ -75,6 +78,13 @@ class GameService:
         """
         if not self.game_started or not self.player.is_alive:
             return
+
+        # Check if first wave should start
+        if self.first_wave_start_time is not None:
+            if (time.time() - self.first_wave_start_time) >= self.wave_start_delay:
+                self.first_wave_start_time = None
+                self._start_next_wave()
+            return  # Don't process wave logic until first wave starts
 
         # Check if wave is cleared
         if self.wave_in_progress and len(self.enemies) == 0:
