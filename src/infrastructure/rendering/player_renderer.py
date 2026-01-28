@@ -26,6 +26,7 @@ class PlayerRenderer(FirstPersonController):
             collider="box",
             position=(0, 0, 0),
             jump_height=0,
+            mouse_sensitivity=GameConfig.PLAYER_MOUSE_SENSITIVITY,
         )
 
         self.player_domain = player_domain
@@ -38,10 +39,10 @@ class PlayerRenderer(FirstPersonController):
             position=(0.5, -0.25, 0.25),
             scale=(0.3, 0.2, 1),
             origin_z=-0.5,
-            color=color.red,
+            color=GameConfig.GUN_COLOR,
         )
         self.gun.muzzle_flash = Entity(
-            parent=self.gun, z=1, world_scale=0.5, model="quad", color=color.yellow, enabled=False
+            parent=self.gun, z=1, world_scale=0.5, model="quad", color=GameConfig.MUZZLE_FLASH_COLOR, enabled=False
         )
 
     def take_damage(self, amount: int):

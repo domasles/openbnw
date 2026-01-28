@@ -1,7 +1,6 @@
-"""
-Centralized game configuration constants.
-"""
+"""Centralized game configuration constants."""
 
+from ursina import color
 
 class GameConfig:
     """All game constants in one place."""
@@ -9,12 +8,12 @@ class GameConfig:
     # Version
     VERSION = "1.0.0-beta"
     NAME = "OpenBNW"
-    DEVELOPMENT = True  # Toggle development mode features
+    DEVELOPMENT = False  # Toggle development mode features
 
     # Player settings
     PLAYER_MAX_HEALTH = 100
     PLAYER_SPEED = 8
-    PLAYER_MOUSE_SENSITIVITY = (40, 40)
+    PLAYER_MOUSE_SENSITIVITY = (90, 90)
 
     # Weapon settings
     WEAPON_FIRE_RATE = 0.15  # seconds between shots
@@ -41,13 +40,13 @@ class GameConfig:
     SPAWN_DISTANCE_MAX = 25.0
 
     # Arena
-    ARENA_SIZE = 64
+    ARENA_SIZE = 72
     ARENA_WALL_HEIGHT = 3
 
     # Visual settings
-    PLAYER_COLOR = "orange"
-    ENEMY_COLOR = "light_gray"
+    ENEMY_COLOR = color.light_gray
+    GUN_COLOR = color.red
+    MUZZLE_FLASH_COLOR = color.yellow
+
     GROUND_TEXTURE = "grass"
     WALL_TEXTURE = "brick"
-    GUN_COLOR = "red"
-    MUZZLE_FLASH_COLOR = "yellow"

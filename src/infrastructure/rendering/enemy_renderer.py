@@ -21,7 +21,7 @@ class EnemyRenderer(Entity):
             model="cube",
             scale_y=2,
             origin_y=-0.5,
-            color=color.light_gray,
+            color=GameConfig.ENEMY_COLOR,
             collider="box",
             position=(x, y, z),
             **kwargs
