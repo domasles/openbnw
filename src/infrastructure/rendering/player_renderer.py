@@ -1,7 +1,7 @@
 """Player entity renderer."""
 
 from ursina import *
-from ursina.prefabs.first_person_controller import FirstPersonController
+from domain.components.first_person_controller import FirstPersonController
 from domain.entities import Player
 from config.game_config import GameConfig
 
@@ -24,11 +24,11 @@ class PlayerRenderer(FirstPersonController):
             origin_y=-0.5,
             speed=GameConfig.PLAYER_SPEED,
             position=(0, 0, 0),
+            collider="sphere",
             jump_height=0,
             mouse_sensitivity=GameConfig.PLAYER_MOUSE_SENSITIVITY,
         )
 
-        self.collider = SphereCollider(self, radius=1)
         self.player_domain = player_domain
 
         # Gun attached to player
