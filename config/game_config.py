@@ -30,7 +30,7 @@ class GameConfig:
     # Wave system
     BASE_ENEMY_COUNT = 5
     ENEMY_COUNT_INCREMENT = 3  # additional enemies per wave
-    WAVE_START_DELAY = 2.0  # seconds before first wave
+    WAVE_START_DELAY = 3.0  # seconds before first wave
     WAVE_CLEAR_DELAY = 3.0  # seconds after wave cleared before next
 
     # Spawning

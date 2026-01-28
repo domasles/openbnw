@@ -27,3 +27,20 @@ class SoundManager:
         except Exception as e:
             # Silent fail if ursfx not available
             pass
+
+    @staticmethod
+    def play_countdown_beep():
+        """Play procedural countdown beep sound."""
+        try:
+            from ursina.prefabs.ursfx import ursfx
+
+            ursfx(
+                [(0.0, 0.5), (0.1, 0.8), (0.2, 0.0)],
+                volume=0.3,
+                wave="square",
+                pitch=random.uniform(8, 9),
+                speed=2.0,
+            )
+        except Exception as e:
+            # Silent fail if ursfx not available
+            pass

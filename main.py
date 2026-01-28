@@ -21,6 +21,7 @@ from src.application.input import InputHandler
 from src.infrastructure.rendering import PlayerRenderer, HUDRenderer, ArenaRenderer
 from src.infrastructure.spawning import EnemySpawner
 from src.infrastructure.input import ShootingHandler, KeyboardMapper
+from src.infrastructure.audio import SoundManager
 
 
 class OpenBNWGame:
@@ -73,6 +74,7 @@ class OpenBNWGame:
         self.game_service.on_enemy_death = self.enemy_spawner.despawn_enemy
         self.game_service.on_enemy_damaged = self.enemy_spawner.handle_enemy_damage
         self.game_service.on_player_death = self._on_player_death
+        self.game_service.on_countdown_beep = lambda: SoundManager.play_countdown_beep()
 
         # Start
         self.game_service.start_game()
