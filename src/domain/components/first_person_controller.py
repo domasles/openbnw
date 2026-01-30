@@ -23,9 +23,7 @@ class FirstPersonController(Entity):
         self.y_velocity = 0
 
         self.traverse_target = scene
-        self.ignore_list = [
-            self,
-        ]
+        self.ignore_list = [self]
         self.on_destroy = self.on_disable
 
         for key, value in kwargs.items():
@@ -43,6 +41,13 @@ class FirstPersonController(Entity):
 
     def on_window_ready(self):
         camera.rotation = Vec3.zero
+
+    def _deflect_along_wall(self, move_amount, wall_normal):
+        """Deflect movement vector along wall to enable wall sliding."""
+        dot_product = move_amount.x * wall_normal.x + move_amount.z * wall_normal.z
+        if dot_product < 0:
+            move_amount.x -= wall_normal.x * dot_product
+            move_amount.z -= wall_normal.z * dot_product
 
     def update(self):
         self.rotation_y += mouse.velocity[0] * self.mouse_sensitivity[1]
@@ -78,57 +83,61 @@ class FirstPersonController(Entity):
             # Apply vertical velocity (happens whether grounded or not for upward jumps)
             if self.y_velocity != 0:
                 self.y += self.y_velocity * time.dt
+            
+            # Check for ceiling collision when jumping upward
+            if self.y_velocity > 0:
+                ceiling_ray = raycast(
+                    self.world_position,
+                    Vec3(0, 1, 0),
+                    distance=self.height + 0.1,
+                    traverse_target=self.traverse_target,
+                    ignore=self.ignore_list
+                )
+                if ceiling_ray.hit and ceiling_ray.distance < self.height:
+                    self.y_velocity = 0
+                    self.y = ceiling_ray.world_point[1] - self.height
 
         if held_keys["space"] and self.grounded:
             self.jump()
 
-        self.direction = Vec3(
-            self.forward * (held_keys["w"] - held_keys["s"]) + self.right * (held_keys["d"] - held_keys["a"])
-        ).normalized()
+        self.direction = Vec3(self.forward * (held_keys["w"] - held_keys["s"]) + self.right * (held_keys["d"] - held_keys["a"])).normalized()
 
         # Calculate desired movement
         move_amount = self.direction * time.dt * self.speed
 
-        # Cast rays in player's facing directions (accounts for rotation)
-        check_distance = 1.0
-        safe_distance = 0.7
-
-        # Check in actual movement direction and perpendiculars
-        if move_amount.length() > 0:
-            # Forward ray in movement direction
-            forward_ray = raycast(
-                self.position + Vec3(0, 1, 0),
-                move_amount.normalized(),
-                distance=check_distance,
-                traverse_target=self.traverse_target,
-                ignore=self.ignore_list,
-            )
-
-            if forward_ray.hit and forward_ray.distance < safe_distance:
-                # Deflect velocity along wall
-                dot_product = move_amount.x * forward_ray.normal.x + move_amount.z * forward_ray.normal.z
-                if dot_product < 0:
-                    move_amount.x -= forward_ray.normal.x * dot_product
-                    move_amount.z -= forward_ray.normal.z * dot_product
-
-        # Additional safety checks in cardinal directions relative to player
-        for direction in [self.forward, self.back, self.right, self.left]:
+        # 8-direction collision detection for comprehensive wall coverage
+        check_distance = 1.0  # Lookahead distance
+        safe_distance = 0.7  # Collision threshold
+        
+        # Define 8 directions: 4 cardinal + 4 diagonal for complete coverage
+        check_directions = [
+            self.forward, self.back, self.left, self.right,           # Cardinal
+            self.forward + self.left, self.forward + self.right,      # Forward diagonals
+            self.back + self.left, self.back + self.right             # Back diagonals
+        ]
+        
+        # Check all directions and deflect movement along walls
+        for direction in check_directions:
             ray = raycast(
                 self.position + Vec3(0, 1, 0),
-                direction,
+                direction.normalized(),
                 distance=check_distance,
                 traverse_target=self.traverse_target,
                 ignore=self.ignore_list,
             )
 
             if ray.hit and ray.distance < safe_distance:
-                dot_product = move_amount.x * ray.normal.x + move_amount.z * ray.normal.z
-                if dot_product < 0:
-                    move_amount.x -= ray.normal.x * dot_product
-                    move_amount.z -= ray.normal.z * dot_product
+                self._deflect_along_wall(move_amount, ray.normal)
 
         # Apply movement
         self.position += move_amount
+
+    def _deflect_along_wall(self, move_amount, wall_normal):
+        """Deflect movement vector along wall to enable wall sliding."""
+        dot_product = move_amount.x * wall_normal.x + move_amount.z * wall_normal.z
+        if dot_product < 0:
+            move_amount.x -= wall_normal.x * dot_product
+            move_amount.z -= wall_normal.z * dot_product
 
     def jump(self):
         """Apply upward velocity for physics-based jump."""
