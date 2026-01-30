@@ -87,9 +87,9 @@ class EnemyRenderer(Entity):
     def destroy(self):
         """Properly clean up all child entities before destroying."""
         # Explicitly destroy health bar first
-        if hasattr(self, 'health_bar') and self.health_bar:
+        if hasattr(self, "health_bar") and self.health_bar:
             destroy(self.health_bar)
             self.health_bar = None
-        
+
         # Then destroy self using Ursina's destroy
         destroy(self, delay=0)

@@ -10,7 +10,7 @@ class FirstPersonController(Entity):
         self.camera_pivot = Entity(parent=self, y=self.height)
 
         camera.parent = self.camera_pivot
-        camera.position = Vec3(0, 0, 0)
+        camera.position = Vec3(0, 0, -0.2)
         camera.rotation = Vec3.zero
         camera.fov = 90
         mouse.locked = True
@@ -18,11 +18,9 @@ class FirstPersonController(Entity):
 
         self.gravity = 1
         self.grounded = False
-        self.jump_height = 2
-        self.jump_up_duration = 0.5
-        self.fall_after = 0.35
-        self.jumping = False
-        self.air_time = 0
+        self.jump_impulse = 8.0
+        self.gravity_strength = 20.0
+        self.y_velocity = 0
 
         self.traverse_target = scene
         self.ignore_list = [
@@ -47,14 +45,43 @@ class FirstPersonController(Entity):
         camera.rotation = Vec3.zero
 
     def update(self):
-        # Rotate entire player entity with mouse horizontal movement
         self.rotation_y += mouse.velocity[0] * self.mouse_sensitivity[1]
-
-        # Camera pivot handles vertical look (pitch)
         self.camera_pivot.rotation_x -= mouse.velocity[1] * self.mouse_sensitivity[0]
         self.camera_pivot.rotation_x = clamp(self.camera_pivot.rotation_x, -90, 90)
 
-        # Calculate movement direction (now in player's local space)
+        if self.gravity:
+            # Ground detection raycast
+            ray = raycast(
+                self.world_position + (0, self.height, 0),
+                self.down,
+                traverse_target=self.traverse_target,
+                ignore=self.ignore_list,
+            )
+
+            if ray.hit and ray.distance <= self.height + 0.05:  # Small tolerance for ground contact
+                # On ground - process landing
+                if self.y_velocity <= 0:  # Only snap if falling, not jumping up
+                    if not self.grounded:
+                        self.land()
+                    self.grounded = True
+
+                    # Snap to exact ground height to prevent clipping
+                    self.y = ray.world_point[1]
+                    self.y_velocity = 0
+            else:
+                # In air
+                self.grounded = False
+
+                # Apply gravity acceleration
+                self.y_velocity -= self.gravity_strength * time.dt * self.gravity
+
+            # Apply vertical velocity (happens whether grounded or not for upward jumps)
+            if self.y_velocity != 0:
+                self.y += self.y_velocity * time.dt
+
+        if held_keys["space"] and self.grounded:
+            self.jump()
+
         self.direction = Vec3(
             self.forward * (held_keys["w"] - held_keys["s"]) + self.right * (held_keys["d"] - held_keys["a"])
         ).normalized()
@@ -103,48 +130,18 @@ class FirstPersonController(Entity):
         # Apply movement
         self.position += move_amount
 
-        if self.gravity:
-            ray = raycast(
-                self.world_position + (0, self.height, 0),
-                self.down,
-                traverse_target=self.traverse_target,
-                ignore=self.ignore_list,
-            )
-
-            if ray.distance <= self.height + 0.1:
-                if not self.grounded:
-                    self.land()
-                self.grounded = True
-
-                if ray.world_normal.y > 0.7 and ray.world_point.y - self.world_y < 0.5:  # walk up slope
-                    self.y = ray.world_point[1]
-                return
-            else:
-                self.grounded = False
-
-            self.y -= min(self.air_time, ray.distance - 0.05) * time.dt * 100
-            self.air_time += time.dt * 0.25 * self.gravity
-
-    def input(self, key):
-        if key == "space":
-            self.jump()
-
     def jump(self):
+        """Apply upward velocity for physics-based jump."""
         if not self.grounded:
             return
 
+        # Apply instant upward velocity
+        self.y_velocity = self.jump_impulse
         self.grounded = False
-        self.animate_y(
-            self.y + self.jump_height, self.jump_up_duration, resolution=int(1 // time.dt), curve=curve.out_expo
-        )
-        invoke(self.start_fall, delay=self.fall_after)
-
-    def start_fall(self):
-        self.y_animator.pause()
-        self.jumping = False
 
     def land(self):
-        self.air_time = 0
+        """Called when player lands on ground."""
+        self.y_velocity = 0
         self.grounded = True
 
     def on_enable(self):

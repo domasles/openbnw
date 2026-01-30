@@ -25,7 +25,6 @@ class PlayerRenderer(FirstPersonController):
             speed=GameConfig.PLAYER_SPEED,
             position=(0, 0, 0),
             collider="sphere",
-            jump_height=0,
             mouse_sensitivity=GameConfig.PLAYER_MOUSE_SENSITIVITY,
         )
 
@@ -62,12 +61,12 @@ class PlayerRenderer(FirstPersonController):
     def destroy(self):
         """Properly clean up all child entities before destroying."""
         # Explicitly destroy gun and its children
-        if hasattr(self, 'gun') and self.gun:
-            if hasattr(self.gun, 'muzzle_flash') and self.gun.muzzle_flash:
+        if hasattr(self, "gun") and self.gun:
+            if hasattr(self.gun, "muzzle_flash") and self.gun.muzzle_flash:
                 destroy(self.gun.muzzle_flash)
                 self.gun.muzzle_flash = None
             destroy(self.gun)
             self.gun = None
-        
+
         # Then destroy self using Ursina's destroy
         destroy(self, delay=0)

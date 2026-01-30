@@ -40,8 +40,9 @@ class OpenBNWGame:
             GameConfig.BASE_ENEMY_SPEED,
             GameConfig.ENEMY_SPEED_INCREMENT,
             GameConfig.ENEMY_MAX_HEALTH,
-            GameConfig.SPAWN_DISTANCE_MIN,
-            GameConfig.SPAWN_DISTANCE_MAX,
+            GameConfig.ARENA_SIZE,
+            GameConfig.SPAWN_MARGIN,
+            GameConfig.PLAYER_DISTANCE_MIN,
         )
 
         # Application layer - service orchestration
@@ -75,6 +76,7 @@ class OpenBNWGame:
         self.game_service.on_enemy_damaged = self.enemy_spawner.handle_enemy_damage
         self.game_service.on_player_death = self._on_player_death
         self.game_service.on_countdown_beep = lambda: SoundManager.play_countdown_beep()
+        self.game_service.on_restart_requested = self._on_restart
 
         # Start
         self.game_service.start_game()
@@ -109,14 +111,8 @@ class OpenBNWGame:
         self.game_service.start_game()
 
     def input(self, key):
-        """Route input to keyboard mapper."""
-        if self.game_over_shown:
-            if key == "r":
-                self._on_restart()
-            elif key == "escape":
-                application.quit()
-        else:
-            self.keyboard_mapper.handle_key(key)
+        """Route input to keyboard mapper for game controls"""
+        self.keyboard_mapper.handle_key(key)
 
     def update(self):
         """Update game state."""

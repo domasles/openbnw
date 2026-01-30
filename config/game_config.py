@@ -2,6 +2,7 @@
 
 from ursina import color
 
+
 class GameConfig:
     """All game constants in one place."""
 
@@ -34,8 +35,8 @@ class GameConfig:
     WAVE_CLEAR_DELAY = 3.0  # seconds after wave cleared before next
 
     # Spawning
-    SPAWN_DISTANCE_MIN = 15.0
-    SPAWN_DISTANCE_MAX = 25.0
+    SPAWN_MARGIN = 2.0
+    PLAYER_DISTANCE_MIN = 8.0
 
     # Arena
     ARENA_SIZE = 64

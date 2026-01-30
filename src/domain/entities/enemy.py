@@ -56,22 +56,40 @@ class Enemy:
         self.last_attack_time = current_time
 
     @staticmethod
-    def generate_spawn_position(min_distance: float, max_distance: float) -> Tuple[float, float, float]:
+    def generate_spawn_position(
+        arena_size: float,
+        margin: float = 2.0,
+        player_pos: Tuple[float, float, float] = (0, 0, 0),
+        min_player_distance: float = 8.0,
+    ) -> Tuple[float, float, float]:
         """
-        Generate random spawn position around origin.
+        Generate random spawn position inside arena bounds, away from player.
 
         Args:
-            min_distance: Minimum distance from origin
-            max_distance: Maximum distance from origin
+            arena_size: Size of the arena (square)
+            margin: Distance to stay away from walls
+            player_pos: Player position (x, y, z)
+            min_player_distance: Minimum distance from player
 
         Returns:
             (x, y, z) position tuple
         """
-        angle = random.uniform(0, 2 * math.pi)
-        distance = random.uniform(min_distance, max_distance)
+        half_size = arena_size / 2 - margin
+        max_attempts = 10
 
-        x = math.cos(angle) * distance
-        z = math.sin(angle) * distance
-        y = 0
+        for attempt in range(max_attempts):
+            # Generate random position within arena bounds
+            x = random.uniform(-half_size, half_size)
+            z = random.uniform(-half_size, half_size)
+            y = 0
 
+            # Check distance from player
+            dx = x - player_pos[0]
+            dz = z - player_pos[2]
+            distance_to_player = math.sqrt(dx * dx + dz * dz)
+
+            if distance_to_player >= min_player_distance:
+                return (x, y, z)
+
+        # If all attempts failed, return last position (better than nothing)
         return (x, y, z)

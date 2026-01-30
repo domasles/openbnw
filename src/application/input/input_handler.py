@@ -35,9 +35,10 @@ class InputHandler:
 
     def handle_restart(self):
         """Handle restart input."""
-        if self.game_over:
-            self.game_service.start_game()
-            self.game_over = False
+        if not self.game_over:
+            return
+
+        self.game_service.on_restart_requested()
 
     def handle_quit(self):
         """Handle quit input."""

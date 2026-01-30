@@ -12,7 +12,14 @@ class GameService:
     Engine-agnostic application layer.
     """
 
-    def __init__(self, player: Player, weapon: Weapon, wave_manager: WaveManager, wave_clear_delay: float = 3.0, wave_start_delay: float = 2.0):
+    def __init__(
+        self,
+        player: Player,
+        weapon: Weapon,
+        wave_manager: WaveManager,
+        wave_clear_delay: float = 3.0,
+        wave_start_delay: float = 2.0,
+    ):
         """
         Initialize game service.
 
@@ -35,6 +42,7 @@ class GameService:
         self.wave_clear_time: Optional[float] = None
         self.first_wave_start_time: Optional[float] = None
         self.last_countdown_beep: Optional[float] = None  # Track last beep time
+        self.player_renderer = None  # Will be set by infrastructure
 
         # Callbacks for infrastructure layer
         self.on_enemy_spawn: Optional[Callable[[Enemy], None]] = None
@@ -43,6 +51,7 @@ class GameService:
         self.on_wave_start: Optional[Callable[[int], None]] = None
         self.on_player_death: Optional[Callable[[], None]] = None
         self.on_countdown_beep: Optional[Callable[[], None]] = None
+        self.on_restart_requested: Optional[Callable[[], None]] = None
 
     def start_game(self) -> None:
         """Initialize and start the game."""
@@ -56,9 +65,13 @@ class GameService:
         """Start the next wave."""
         # Safety cleanup: remove any dead enemies before starting new wave
         self.enemies = [e for e in self.enemies if e.is_alive]
-        
+
         wave_number = self.wave_manager.advance_to_next_wave()
-        new_enemies = self.wave_manager.spawn_wave(wave_number)
+        # Get player position from player_renderer (infrastructure reference)
+        player_pos = (0, 0, 0)
+        if self.player_renderer is not None:
+            player_pos = (self.player_renderer.x, self.player_renderer.y, self.player_renderer.z)
+        new_enemies = self.wave_manager.spawn_wave(wave_number, player_pos)
         self.enemies.extend(new_enemies)
         self.wave_in_progress = True
         self.wave_clear_time = None
@@ -85,18 +98,22 @@ class GameService:
         if self.first_wave_start_time is not None:
             elapsed = time.time() - self.first_wave_start_time
             time_remaining = self.wave_start_delay - elapsed
-            
+
             # Play countdown beeps every second in the LAST 2 seconds
             if self.on_countdown_beep and time_remaining <= 2.0 and time_remaining > 0:
                 beep_interval = 1.0
                 # Calculate which beep we're on (0 or 1 for 2-second countdown)
                 current_beep = int((2.0 - time_remaining) / beep_interval)
-                last_beep = int((self.last_countdown_beep or -1) / beep_interval) if self.last_countdown_beep is not None else -1
-                
+                last_beep = (
+                    int((self.last_countdown_beep or -1) / beep_interval)
+                    if self.last_countdown_beep is not None
+                    else -1
+                )
+
                 if current_beep > last_beep:
                     self.on_countdown_beep()
                     self.last_countdown_beep = 2.0 - time_remaining
-            
+
             if elapsed >= self.wave_start_delay:
                 self.first_wave_start_time = None
                 self.last_countdown_beep = None
@@ -115,18 +132,22 @@ class GameService:
         if not self.wave_in_progress and self.wave_clear_time is not None:
             elapsed = time.time() - self.wave_clear_time
             time_remaining = self.wave_clear_delay - elapsed
-            
+
             # Play countdown beeps every second in the LAST 2 seconds
             if self.on_countdown_beep and time_remaining <= 2.0 and time_remaining > 0:
                 beep_interval = 1.0
                 # Calculate which beep we're on (0 or 1 for 2-second countdown)
                 current_beep = int((2.0 - time_remaining) / beep_interval)
-                last_beep = int((self.last_countdown_beep or -1) / beep_interval) if self.last_countdown_beep is not None else -1
-                
+                last_beep = (
+                    int((self.last_countdown_beep or -1) / beep_interval)
+                    if self.last_countdown_beep is not None
+                    else -1
+                )
+
                 if current_beep > last_beep:
                     self.on_countdown_beep()
                     self.last_countdown_beep = 2.0 - time_remaining
-            
+
             if elapsed >= self.wave_clear_delay:
                 self.wave_clear_time = None
                 self.last_countdown_beep = None
@@ -161,7 +182,7 @@ class GameService:
             return False
 
         enemy.take_damage(self.weapon.damage)
-        
+
         # Notify infrastructure for visual feedback (blink, health bar update)
         if self.on_enemy_damaged:
             self.on_enemy_damaged(enemy)

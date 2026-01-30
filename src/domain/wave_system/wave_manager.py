@@ -17,8 +17,9 @@ class WaveManager:
         base_enemy_speed: float,
         enemy_speed_increment: float,
         enemy_max_health: int,
-        spawn_distance_min: float,
-        spawn_distance_max: float,
+        arena_size: float,
+        spawn_margin: float,
+        min_player_distance: float,
     ):
         """
         Initialize wave manager.
@@ -29,16 +30,18 @@ class WaveManager:
             base_enemy_speed: Starting enemy speed
             enemy_speed_increment: Speed increase per wave
             enemy_max_health: Enemy health
-            spawn_distance_min: Minimum spawn distance
-            spawn_distance_max: Maximum spawn distance
+            arena_size: Size of the arena (square)
+            spawn_margin: Distance to stay away from arena walls
+            min_player_distance: Minimum distance from player when spawning
         """
         self.base_enemy_count = base_enemy_count
         self.enemy_count_increment = enemy_count_increment
         self.base_enemy_speed = base_enemy_speed
         self.enemy_speed_increment = enemy_speed_increment
         self.enemy_max_health = enemy_max_health
-        self.spawn_distance_min = spawn_distance_min
-        self.spawn_distance_max = spawn_distance_max
+        self.arena_size = arena_size
+        self.spawn_margin = spawn_margin
+        self.min_player_distance = min_player_distance
 
         self.current_wave = 0
         self.enemies_spawned_this_wave = 0
@@ -67,12 +70,13 @@ class WaveManager:
         """
         return self.base_enemy_speed + (wave_number - 1) * self.enemy_speed_increment
 
-    def spawn_wave(self, wave_number: int) -> List[Enemy]:
+    def spawn_wave(self, wave_number: int, player_position: Tuple[float, float, float] = (0, 0, 0)) -> List[Enemy]:
         """
         Generate enemies for a wave.
 
         Args:
             wave_number: The wave number (1-based)
+            player_position: Current player position for spawn distance checking
 
         Returns:
             List of Enemy instances
@@ -82,7 +86,9 @@ class WaveManager:
 
         enemies = []
         for _ in range(enemy_count):
-            position = Enemy.generate_spawn_position(self.spawn_distance_min, self.spawn_distance_max)
+            position = Enemy.generate_spawn_position(
+                self.arena_size, self.spawn_margin, player_position, self.min_player_distance
+            )
             enemy = Enemy(position, enemy_speed, self.enemy_max_health)
             enemies.append(enemy)
 
