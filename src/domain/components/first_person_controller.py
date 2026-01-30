@@ -18,7 +18,7 @@ class FirstPersonController(Entity):
 
         self.gravity = 1
         self.grounded = False
-        self.jump_impulse = 8.0
+        self.jump_height = 8.0
         self.gravity_strength = 20.0
         self.y_velocity = 0
 
@@ -55,29 +55,37 @@ class FirstPersonController(Entity):
         self.camera_pivot.rotation_x = clamp(self.camera_pivot.rotation_x, -90, 90)
 
         if self.gravity:
-            # Ground detection raycast
+            # Ground detection raycast from feet level for better obstacle detection
             ray = raycast(
-                self.world_position + (0, self.height, 0),
+                self.world_position + (0, 0.3, 0),
                 self.down,
+                distance=5.0,
                 traverse_target=self.traverse_target,
                 ignore=self.ignore_list,
             )
 
-            if ray.hit and ray.distance <= self.height + 0.05:  # Small tolerance for ground contact
-                # On ground - process landing
-                if self.y_velocity <= 0:  # Only snap if falling, not jumping up
+            if ray.hit:
+                # Calculate actual height above ground (not ray distance)
+                height_above_ground = self.y - ray.world_point[1]
+                
+                # Only consider grounded if very close to ground AND falling
+                if height_above_ground <= 0.1 and self.y_velocity <= 0:
                     if not self.grounded:
                         self.land()
                     self.grounded = True
 
-                    # Snap to exact ground height to prevent clipping
+                    # Snap to exact ground height
                     self.y = ray.world_point[1]
                     self.y_velocity = 0
+                else:
+                    # Too high above ground or jumping up - still in air
+                    self.grounded = False
             else:
-                # In air
+                # No ground detected below (falling into void)
                 self.grounded = False
 
-                # Apply gravity acceleration
+            # Apply gravity whenever not grounded (in air)
+            if not self.grounded:
                 self.y_velocity -= self.gravity_strength * time.dt * self.gravity
 
             # Apply vertical velocity (happens whether grounded or not for upward jumps)
@@ -145,7 +153,7 @@ class FirstPersonController(Entity):
             return
 
         # Apply instant upward velocity
-        self.y_velocity = self.jump_impulse
+        self.y_velocity = self.jump_height
         self.grounded = False
 
     def land(self):

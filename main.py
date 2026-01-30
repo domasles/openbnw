@@ -97,7 +97,7 @@ class OpenBNWGame:
         self.enemy_spawner.despawn_all()
 
         # Reset player
-        self.player_renderer.position = (0, 0, 0)
+        self.player_renderer.position = (0, 0.5, 0)
         self.player_renderer.enable()
 
         # Reset game state

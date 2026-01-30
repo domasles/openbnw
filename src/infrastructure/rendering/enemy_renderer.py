@@ -19,7 +19,7 @@ class EnemyRenderer(Entity):
         super().__init__(
             parent=shootables_parent,
             model="cube",
-            scale_y=2,
+            scale_y=2.5,
             origin_y=-0.5,
             color=GameConfig.ENEMY_COLOR,
             collider="box",

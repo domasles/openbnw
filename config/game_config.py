@@ -14,6 +14,7 @@ class GameConfig:
     # Player settings
     PLAYER_MAX_HEALTH = 100
     PLAYER_SPEED = 8
+    PLAYER_JUMP_HEIGHT = 8
     PLAYER_MOUSE_SENSITIVITY = (90, 90)
 
     # Weapon settings

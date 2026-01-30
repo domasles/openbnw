@@ -24,6 +24,7 @@ class PlayerRenderer(FirstPersonController):
             origin_y=-0.5,
             speed=GameConfig.PLAYER_SPEED,
             position=(0, 0, 0),
+            jump_height=GameConfig.PLAYER_JUMP_HEIGHT,
             collider="sphere",
             mouse_sensitivity=GameConfig.PLAYER_MOUSE_SENSITIVITY,
         )
